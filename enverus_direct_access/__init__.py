@@ -62,7 +62,7 @@ class BaseAPI(object):
         self.session.verify = kwargs.pop("verify", True)
         self.session.proxies = kwargs.pop("proxies", {})
         self.session.headers.update(
-            {"X-API-KEY": self.api_key, "User-Agent": "direct-access-py"}
+            {"X-API-KEY": self.api_key, "User-Agent": "direct-access-py"} # TODO: only for 2d version. Should be changed
         )
 
         self._status_forcelist = [500, 502, 503, 504]
@@ -523,3 +523,80 @@ class DirectAccessV2(BaseAPI):
 
             for record in records:
                 yield record
+
+
+class DirectAccessV3(DirectAccessV2):
+    """Client for Enverus Drillinginfo Developer API Version 2"""
+
+    def __init__(
+        self,
+        secret_key=None,
+        retries=5,
+        backoff_factor=1,
+        links=None,
+        access_token=None,
+        **kwargs
+    ):
+        """
+        Enverus Drillinginfo Developer API Version 3 client
+
+        API documentation and credentials can be found at: https://app.drillinginfo.com/direct/#/api/overview
+
+        :param secret_key: client secret key.
+        :type secret_key: str
+        :param retries: the number of attempts when retrying failed requests with status codes of 500, 502, 503 or 504
+        :type retries: int
+        :param backoff_factor: the factor to use when exponentially backing off prior to retrying a failed request
+        :type backoff_factor: int
+        :param links: a dictionary of prev and next links as provided by the python-requests Session.
+        See https://requests.readthedocs.io/en/master/user/advanced/#link-headers
+        :type dict
+        :param access_token: an optional, pregenerated access token. If provided, the class instance will not
+        automatically try to request a new access token.
+        :type: access_token: str
+        :param kwargs:
+        """
+        super(DirectAccessV3, self).__init__("",
+                                             "",
+                                             "",
+                                             retries,
+                                             backoff_factor,
+                                             links,
+                                             access_token,
+                                             **kwargs)
+        self.links = links
+        self.access_token = access_token
+        self.secret_key = secret_key
+        self.url = self.url + "/v3/direct-access"
+        self.session.hooks["response"].append(self._check_response)
+        self.session.headers.pop("X-API-KEY")
+
+        if self.access_token:
+            self.session.headers["Authorization"] = "bearer {}".format(
+                self.access_token
+            )
+        else:
+            self.access_token = self.get_access_token()["access_token"]
+
+
+    def get_access_token(self):
+        """
+        Get an access token from /tokens endpoint. Automatically sets the Authorization header on the class instance's
+        session. Raises DAAuthException on error
+
+        :return: token response as dict
+        """
+        url = self.url + "/tokens"
+        if not self.api_key or not self.secret_key:
+            raise DAAuthException(
+                "SECRET_KEY are required to generate an access token"
+            )
+
+        self.session.headers["Content-Type"] = "application/json"
+
+        payload = {"secretKey": self.secret_key}
+        response = self.session.post(url, params=payload)
+        self.logger.debug("Token response: " + json.dumps(response.json(), indent=2))
+        self.access_token = response.json()["access_token"]
+        self.session.headers["Authorization"] = "Bearer {}".format(self.access_token)
+        return response.json()
