@@ -556,27 +556,26 @@ class DirectAccessV3(DirectAccessV2):
         :type: access_token: str
         :param kwargs:
         """
-        super(DirectAccessV3, self).__init__("",
-                                             "",
-                                             "",
+        super(DirectAccessV2, self).__init__("",
                                              retries,
                                              backoff_factor,
-                                             links,
-                                             access_token,
                                              **kwargs)
+
         self.links = links
         self.access_token = access_token
         self.secret_key = secret_key
         self.url = self.url + "/v3/direct-access"
+
         self.session.hooks["response"].append(self._check_response)
         self.session.headers.pop("X-API-KEY")
+
 
         if self.access_token:
             self.session.headers["Authorization"] = "bearer {}".format(
                 self.access_token
             )
         else:
-            self.access_token = self.get_access_token()["access_token"]
+            self.access_token = self.get_access_token()["token"]
 
 
     def get_access_token(self):
@@ -587,7 +586,7 @@ class DirectAccessV3(DirectAccessV2):
         :return: token response as dict
         """
         url = self.url + "/tokens"
-        if not self.api_key or not self.secret_key:
+        if not self.secret_key:
             raise DAAuthException(
                 "SECRET_KEY are required to generate an access token"
             )
@@ -595,8 +594,9 @@ class DirectAccessV3(DirectAccessV2):
         self.session.headers["Content-Type"] = "application/json"
 
         payload = {"secretKey": self.secret_key}
-        response = self.session.post(url, params=payload)
+
+        response = self.session.post(url, json=payload)
         self.logger.debug("Token response: " + json.dumps(response.json(), indent=2))
-        self.access_token = response.json()["access_token"]
+        self.access_token = response.json()["token"]
         self.session.headers["Authorization"] = "Bearer {}".format(self.access_token)
         return response.json()
