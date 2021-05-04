@@ -509,6 +509,8 @@ class DirectAccessV2(BaseAPI):
                 )
 
             records = response.json()
+            if isinstance(records, dict):
+                records = [records]
 
             if not len(records):
                 self.links = None
@@ -523,6 +525,8 @@ class DirectAccessV2(BaseAPI):
 
             for record in records:
                 yield record
+            if self.links is None:
+                break
 
 
 class DirectAccessV3(DirectAccessV2):
