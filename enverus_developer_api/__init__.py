@@ -78,8 +78,11 @@ class BaseAPI(object):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.session:
-            self.session.close()
+            self.close()
         self.session = None
+
+    def close(self):
+        self.session.close()
 
     def get_access_token(self):
         raise NotImplementedError

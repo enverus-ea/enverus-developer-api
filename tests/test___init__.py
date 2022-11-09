@@ -248,6 +248,10 @@ class TestEnverusDeveloperAPI(TestCase):
                 break
         self.assertTrue(len(records) > 0, "test_query_v2 records list empty")
 
+    def test_with_statement(self):
+        with DeveloperAPIv3(secret_key=os.environ.get("DIRECTACCESSV3_API_KEY")) as _:
+            pass
+
 
 if __name__ == '__main__':
     unittest.main()
