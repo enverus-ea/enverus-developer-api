@@ -249,8 +249,9 @@ class TestEnverusDeveloperAPI(TestCase):
         self.assertTrue(len(records) > 0, "test_query_v2 records list empty")
 
     def test_with_statement(self):
-        with DeveloperAPIv3(secret_key=os.environ.get("DIRECTACCESSV3_API_KEY")) as _:
+        with DeveloperAPIv3(secret_key=os.environ.get("DIRECTACCESSV3_API_KEY")) as d3:
             pass
+        self.assertTrue(isinstance(d3, DeveloperAPIv3))
 
 
 if __name__ == '__main__':
