@@ -179,16 +179,6 @@ Omit the Next Link in the Response Header section, add the Next Link to the JSON
 for row in v3.query("rigs", pagesize=1000, deleteddate="null", _headers={'X-Omit-Header-Next-Links': 'true'}):
     print(row)
 ```
-Example response:
-```JSON
-"data": [
-{rows},...
-],
-"links": {
-    "next": "</dataset?action=next&next_page=ID<777&pagesize=50>; rel='next'"
-  }
-  
-```
 
 ### to_csv
 Write query results to CSV. Optional keyword arguments are provided to the csv writer object, 
