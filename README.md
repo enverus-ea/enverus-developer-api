@@ -165,13 +165,29 @@ count = v3.count("rigs", deleteddate="null")
 ```
 
 ### query
-Accepts a dataset name and a variable number of keyword arguments that correspond to the fields specified 
+Accepts a dataset name, request headers and a variable number of keyword arguments that correspond to the fields specified 
 in the ‘Request Parameters’ section for each dataset in the Developer API documentation.
 
 This method only supports the JSON output provided by the API and yields dicts for each record
 ```python
 for row in v3.query("rigs", pagesize=1000, deleteddate="null"):
     print(row)
+```
+##### X-Omit-Header-Next-Links header
+Omit the Next Link in the Response Header section, add the Next Link to the JSON Response Body.
+```python
+for row in v3.query("rigs", pagesize=1000, deleteddate="null", _headers={'X-Omit-Header-Next-Links': 'true'}):
+    print(row)
+```
+Example response:
+```JSON
+"data": [
+{rows},...
+],
+"links": {
+    "next": "</dataset?action=next&next_page=ID<777&pagesize=50>; rel='next'"
+  }
+  
 ```
 
 ### to_csv
