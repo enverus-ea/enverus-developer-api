@@ -14,7 +14,7 @@ import requests
 import unicodecsv as csv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
+from requests.utils import parse_header_links
 class DAAuthException(Exception):
     pass
 
@@ -622,6 +622,17 @@ class DeveloperAPIv3(BaseAPI):
 
         return False
 
+    @staticmethod
+    def parse_links(links_obj):
+        result = {}
+        if links_obj["next"]:
+            links = parse_header_links(links_obj["next"])
+
+            for link in links:
+                key = link.get("rel") or link.get("url")
+                result[key] = link
+
+        return result
     def query(self, dataset, **options):
         """
         Query Developer API dataset
@@ -654,7 +665,7 @@ class DeveloperAPIv3(BaseAPI):
 
         while True:
             if self.links:
-                response = self.session.get(self.url[:-1] + self.links["next"], headers=request_headers)
+                response = self.session.get(self.url[:-1] + self.links["next"]["url"], headers=request_headers)
             else:
                 if query_chunks and query_chunks[1]:
                     options[query_chunks[0]] = self.in_(query_chunks[1].pop(0))
@@ -667,11 +678,9 @@ class DeveloperAPIv3(BaseAPI):
                 )
 
             records = response.json()
-            if omit_header_next_link:
-                next_link = records['links']['next']
-                if re.search(r"; rel='next'", next_link):
-                    self.links = {'next': re.sub(r".*<(.*)>; rel='next'.*", r'\1', next_link)}
-                records = records['data']
+            if omit_header_next_link and records["links"]:
+                self.links = self.parse_links(records["links"])
+                records = records["data"]
 
             if isinstance(records, dict):
                 records = [records]
@@ -685,7 +694,7 @@ class DeveloperAPIv3(BaseAPI):
                 break
 
             if not omit_header_next_link and "next" in response.links:
-                self.links = {'next': response.links['next']['url']}
+                self.links = response.links
 
             for record in records:
                 yield record

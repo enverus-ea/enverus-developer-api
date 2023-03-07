@@ -109,6 +109,9 @@ class TestEnverusDeveloperAPI(TestCase):
         is_omit_next_link = self.v3.is_omit_header_next_link(_headers={'Omit-Header-Next-Links': 'true'})
         self.assertTrue(not is_omit_next_link, "test_is_omit_header_next_link should not contain omit header")
 
+    def test_parse_links(self):
+        links = self.v3.parse_links({"next":"</economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50>; rel='next'"})
+        self.assertTrue(links["next"]["url"], "/economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50")
     def test_docs_v3(self):
         docs = self.v3.docs("casings")
         self.assertTrue(docs)
