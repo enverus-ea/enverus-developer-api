@@ -112,6 +112,7 @@ class TestEnverusDeveloperAPI(TestCase):
     def test_parse_links(self):
         links = self.v3.parse_links({"next":"</economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50>; rel='next'"})
         self.assertTrue(links["next"]["url"], "/economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50")
+
     def test_docs_v3(self):
         docs = self.v3.docs("casings")
         self.assertTrue(docs)

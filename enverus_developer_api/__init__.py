@@ -633,6 +633,7 @@ class DeveloperAPIv3(BaseAPI):
                 result[key] = link
 
         return result
+
     def query(self, dataset, **options):
         """
         Query Developer API dataset
