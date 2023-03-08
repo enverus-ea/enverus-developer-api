@@ -13,9 +13,8 @@ from collections import OrderedDict
 import requests
 import unicodecsv as csv
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
-
-
+from urllib3.util.retry import Retry
+from requests.utils import parse_header_links
 class DAAuthException(Exception):
     pass
 
@@ -67,7 +66,7 @@ class BaseAPI(object):
         retries = Retry(
             total=self.retries,
             backoff_factor=self.backoff_factor,
-            method_whitelist=frozenset(["GET", "POST", "HEAD"]),
+            allowed_methods=frozenset(["GET", "POST", "HEAD"]),
             status_forcelist=self._status_forcelist,
         )
         self.session.mount("https://", HTTPAdapter(max_retries=retries))
@@ -613,3 +612,93 @@ class DeveloperAPIv3(BaseAPI):
         self.session.headers["Authorization"] = "bearer {}".format(self.access_token)
 
         return response.json()
+
+    def is_omit_header_next_link(self, **options):
+        if "_headers" in options:
+            for (k, v) in options.get("_headers").items():
+                self.session.headers[k] = v
+                if k.lower() == "x-omit-header-next-links" and v.lower() == "true":
+                    return True
+
+        return False
+
+    @staticmethod
+    def parse_links(links_obj):
+        result = {}
+        if links_obj["next"]:
+            links = parse_header_links(links_obj["next"])
+
+            for link in links:
+                key = link.get("rel") or link.get("url")
+                result[key] = link
+
+        return result
+
+    def query(self, dataset, **options):
+        """
+        Query Developer API dataset
+
+        Accepts a dataset name and a variable number of keyword arguments that correspond to the fields specified in
+        the 'Request Parameters' section for each dataset in the Developer API documentation.
+
+        This method only supports the JSON output provided by the API and yields dicts for each record.
+
+        :param dataset: a valid dataset name. See the Developer API documentation for valid values
+        :param options: query parameters as keyword arguments, _headers dict - request headers.
+        :return: query response as generator
+        """
+        request_headers = None
+        omit_header_next_link = False
+        if "_headers" in options:
+            omit_header_next_link = self.is_omit_header_next_link(**options)
+            request_headers = options.pop("_headers")
+
+        query_url = os.path.join(self.url, dataset)
+
+        query_chunks = None
+        for field, v in options.items():
+            if "in(" in str(v) and len(str(v)) > 1950:
+                values = re.split(r"in\((.*?)\)", options[field])[1].split(",")
+                chunksize = int(floor(1950 / len(max(values))))
+                query_chunks = (field, [x for x in _chunks(values, chunksize)])
+
+        paging = options.pop("paging") if "paging" in options else "true"
+
+        while True:
+            if self.links:
+                response = self.session.get(self.url[:-1] + self.links["next"]["url"], headers=request_headers)
+            else:
+                if query_chunks and query_chunks[1]:
+                    options[query_chunks[0]] = self.in_(query_chunks[1].pop(0))
+
+                response = self.session.get(query_url, params=options, headers=request_headers)
+
+            if not response.ok:
+                raise DAQueryException(
+                    "Non-200 response: {} {}".format(response.status_code, response.text)
+                )
+
+            records = response.json()
+            if omit_header_next_link and records["links"]:
+                self.links = self.parse_links(records["links"])
+                records = records["data"]
+
+            if isinstance(records, dict):
+                records = [records]
+
+            if not len(records):
+                self.links = None
+
+                if query_chunks and query_chunks[1]:
+                    continue
+
+                break
+
+            if not omit_header_next_link and "next" in response.links:
+                self.links = response.links
+
+            for record in records:
+                yield record
+
+            if self.links is None or paging.lower() == "false":
+                break

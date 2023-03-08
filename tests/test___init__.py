@@ -93,6 +93,26 @@ class TestEnverusDeveloperAPI(TestCase):
                 break
         self.assertTrue(len(records) > 0, "test_query_v3 records list empty")
 
+    def test_query_v3_omit_header_next_link(self):
+        query = self.v3.query("casings", pagesize=10, deleteddate="null", _headers={'X-Omit-Header-Next-Links': 'true'})
+        records = list()
+        for i, row in enumerate(query, start=1):
+            records.append(row)
+            if i % 30 == 0:
+                break
+        self.assertTrue(len(records) > 0, "test_query_v3 records list empty")
+
+    def test_is_omit_header_next_link(self):
+        is_omit_next_link = self.v3.is_omit_header_next_link(_headers={'X-Omit-Header-Next-Links': 'true'})
+        self.assertTrue(is_omit_next_link, "test_is_omit_header_next_link should contain omit header")
+
+        is_omit_next_link = self.v3.is_omit_header_next_link(_headers={'Omit-Header-Next-Links': 'true'})
+        self.assertTrue(not is_omit_next_link, "test_is_omit_header_next_link should not contain omit header")
+
+    def test_parse_links(self):
+        links = self.v3.parse_links({"next":"</economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50>; rel='next'"})
+        self.assertTrue(links["next"]["url"], "/economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50")
+
     def test_docs_v3(self):
         docs = self.v3.docs("casings")
         self.assertTrue(docs)
@@ -186,7 +206,7 @@ class TestEnverusDeveloperAPI(TestCase):
         [x.start() for x in procs]
         [x.join() for x in procs]
 
-# ******************** DirectAccessV2 Test Cases **********************
+    # ******************** DirectAccessV2 Test Cases **********************
 
     def test_missing_api_key_v2(self):
         with self.assertRaises(DAAuthException):
