@@ -7,6 +7,8 @@ network-related error handling/retries.
 
 This module is built and tested on Python 3.9 but should work on Python 2.7 and up.
 
+See the "Examples" folder for a few ideas for code that users have submitted which may be useful for your implementation.
+
 
 ## Install
 ```commandline
