@@ -110,7 +110,8 @@ class TestEnverusDeveloperAPI(TestCase):
         self.assertTrue(not is_omit_next_link, "test_is_omit_header_next_link should not contain omit header")
 
     def test_parse_links(self):
-        links = self.v3.parse_links({"next":"</economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50>; rel='next'"})
+        links = self.v3.parse_links(
+            {"next": "</economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50>; rel='next'"})
         self.assertTrue(links["next"]["url"], "/economics?action=next&next_page=WellID+%3C+840600005436298&pagesize=50")
 
     def test_docs_v3(self):
@@ -205,6 +206,14 @@ class TestEnverusDeveloperAPI(TestCase):
 
         [x.start() for x in procs]
         [x.join() for x in procs]
+
+    def test_enter_exit(self):
+        with DeveloperAPIv3(secret_key=os.environ.get("DIRECTACCESSV3_API_KEY"),
+                            access_token=os.environ.get("DIRECTACCESSV3_TOKEN")) as api:
+            self.assertIsInstance(api, DeveloperAPIv3)
+            self.assertIsNotNone(api.session)
+
+        self.assertIsNone(api.session)
 
     # ******************** DirectAccessV2 Test Cases **********************
 
