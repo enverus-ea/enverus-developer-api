@@ -15,6 +15,8 @@ import unicodecsv as csv
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from requests.utils import parse_header_links
+
+
 class DAAuthException(Exception):
     pass
 
@@ -70,6 +72,14 @@ class BaseAPI(object):
             status_forcelist=self._status_forcelist,
         )
         self.session.mount("https://", HTTPAdapter(max_retries=retries))
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.session:
+            self.session.close()
+        self.session = None
 
     def get_access_token(self):
         raise NotImplementedError
