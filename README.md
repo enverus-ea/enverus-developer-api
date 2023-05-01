@@ -239,3 +239,9 @@ df = v3.to_dataframe(
 )
 df.head(10)
 ```
+Reset the index of the DataFrame, and use the default one instead. [reset_index()](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.reset_index.html)
+```python
+    df = v3.to_dataframe(dataset, pagesize=10000, ENVBasin="SACRAMENTO")
+    df.reset_index(inplace=True)
+    df.head(10)
+```
