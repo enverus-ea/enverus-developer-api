@@ -44,7 +44,11 @@ setup(
     keywords=['enverus', 'drillinginfo', 'directaccess', 'oil', 'gas'],
     packages=find_packages(exclude=('test*', )),
     package_dir={'enverus_developer_api': 'enverus_developer_api'},
-    install_requires=['requests>=2.5.1, <3', 'unicodecsv==0.14.1'],
+    install_requires=[
+        'requests>=2.5.1,<3',
+        'unicodecsv==0.14.1',
+        'urllib3>=1.26.14',
+    ],
     extras_require={'pandas': pandas},
     cmdclass={
         'verify': VerifyVersionCommand,
