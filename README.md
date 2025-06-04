@@ -36,7 +36,6 @@ header is set automatically
 from enverus_developer_api import DirectAccessV2
 
 d2 = DirectAccessV2(
-    api_key='<your-api-key>',
     client_id='<your-client-id>',
     client_secret='<your-client-secret>',
 )

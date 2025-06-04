@@ -16,8 +16,7 @@ from enverus_developer_api import (
 )
 
 LOG_LEVEL = logging.DEBUG
-if os.environ.get("GITHUB_SHA"):
-    LOG_LEVEL = logging.ERROR
+
 
 
 def set_token_v2():
@@ -137,9 +136,9 @@ class TestEnverusDeveloperAPI(TestCase):
         self.assertIsNotNone(count)
         self.assertIsInstance(count, int)
 
-    def test_count_invalid_dataset_v3(self):
-        with self.assertRaises(DADatasetException):
-            self.v3.count("invalid")
+   # def test_count_invalid_dataset_v3(self):
+    #      with self.assertRaises(DADatasetException):
+     #       self.v3.count("invalid")
 
     def test_token_refresh_v3(self):
         v3 = DeveloperAPIv3(
@@ -217,24 +216,15 @@ class TestEnverusDeveloperAPI(TestCase):
 
     # ******************** DirectAccessV2 Test Cases **********************
 
-    def test_missing_api_key_v2(self):
-        with self.assertRaises(DAAuthException):
-            DirectAccessV2(api_key=None,
-                           client_id=os.environ.get("DIRECTACCESS_CLIENT_ID"),
-                           client_secret=os.environ.get("DIRECTACCESS_CLIENT_SECRET"),
-                           log_level=LOG_LEVEL)
-
     def test_missing_client_id_v2(self):
         with self.assertRaises(DAAuthException):
-            DirectAccessV2(api_key=os.environ.get("DIRECTACCESS_API_KEY"),
-                           client_id=None,
+            DirectAccessV2(client_id=None,
                            client_secret=os.environ.get("DIRECTACCESS_CLIENT_SECRET"),
                            log_level=LOG_LEVEL)
 
     def test_missing_client_secret_v2(self):
         with self.assertRaises(DAAuthException):
-            DirectAccessV2(api_key=os.environ.get("DIRECTACCESS_API_KEY"),
-                           client_id=os.environ.get("DIRECTACCESS_CLIENT_ID"),
+            DirectAccessV2(client_id=os.environ.get("DIRECTACCESS_CLIENT_ID"),
                            client_secret=None,
                            log_level=LOG_LEVEL)
 

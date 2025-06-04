@@ -18,7 +18,6 @@ from enverus_developer_api import DirectAccessV2
 
 # Retrieve our access token
 ACCESS_TOKEN = DirectAccessV2(
-    api_key=os.getenv('DIRECTACCESS_API_KEY'),
     client_id=os.getenv('DIRECTACCESS_CLIENT_ID'),
     client_secret=os.getenv('DIRECTACCESS_CLIENT_SECRET')
 ).access_token
@@ -35,7 +34,6 @@ def load(endpoint, **options):
     # Create a DirectAccessV2 client within the function, providing it our already existing access token
     # and thus avoiding unnecessary authentication calls
     client = DirectAccessV2(
-        api_key=os.getenv('DIRECTACCESS_API_KEY'),
         client_id=os.getenv('DIRECTACCESS_CLIENT_ID'),
         client_secret=os.getenv('DIRECTACCESS_CLIENT_SECRET'),
         access_token=ACCESS_TOKEN
