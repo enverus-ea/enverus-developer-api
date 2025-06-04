@@ -10,13 +10,13 @@ from multiprocessing import Process
 from enverus_developer_api import (
     DeveloperAPIv3,
     DirectAccessV2,
-    DADatasetException,
     DAQueryException,
     DAAuthException
 )
 
 LOG_LEVEL = logging.DEBUG
-
+if os.environ.get("GITHUB_SHA"):
+    LOG_LEVEL = logging.ERROR
 
 
 def set_token_v2():
