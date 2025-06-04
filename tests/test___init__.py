@@ -10,6 +10,7 @@ from multiprocessing import Process
 from enverus_developer_api import (
     DeveloperAPIv3,
     DirectAccessV2,
+    DADatasetException,
     DAQueryException,
     DAAuthException
 )
@@ -136,9 +137,9 @@ class TestEnverusDeveloperAPI(TestCase):
         self.assertIsNotNone(count)
         self.assertIsInstance(count, int)
 
-   # def test_count_invalid_dataset_v3(self):
-    #      with self.assertRaises(DADatasetException):
-     #       self.v3.count("invalid")
+    def test_count_invalid_dataset_v3(self):
+        with self.assertRaises(DADatasetException):
+            self.v3.count("invalid")
 
     def test_token_refresh_v3(self):
         v3 = DeveloperAPIv3(
