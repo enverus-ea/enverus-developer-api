@@ -24,7 +24,6 @@ from enverus_developer_api import DirectAccessV2
 
 # Initialize our Direct Access object
 d2 = DirectAccessV2(
-    api_key=os.getenv('DIRECTACCESS_API_KEY'),
     client_id=os.getenv('DIRECTACCESS_CLIENT_ID'),
     client_secret=os.getenv('DIRECTACCESS_CLIENT_SECRET')
 )

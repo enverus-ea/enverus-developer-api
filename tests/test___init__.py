@@ -217,24 +217,15 @@ class TestEnverusDeveloperAPI(TestCase):
 
     # ******************** DirectAccessV2 Test Cases **********************
 
-    def test_missing_api_key_v2(self):
-        with self.assertRaises(DAAuthException):
-            DirectAccessV2(api_key=None,
-                           client_id=os.environ.get("DIRECTACCESS_CLIENT_ID"),
-                           client_secret=os.environ.get("DIRECTACCESS_CLIENT_SECRET"),
-                           log_level=LOG_LEVEL)
-
     def test_missing_client_id_v2(self):
         with self.assertRaises(DAAuthException):
-            DirectAccessV2(api_key=os.environ.get("DIRECTACCESS_API_KEY"),
-                           client_id=None,
+            DirectAccessV2(client_id=None,
                            client_secret=os.environ.get("DIRECTACCESS_CLIENT_SECRET"),
                            log_level=LOG_LEVEL)
 
     def test_missing_client_secret_v2(self):
         with self.assertRaises(DAAuthException):
-            DirectAccessV2(api_key=os.environ.get("DIRECTACCESS_API_KEY"),
-                           client_id=os.environ.get("DIRECTACCESS_CLIENT_ID"),
+            DirectAccessV2(client_id=os.environ.get("DIRECTACCESS_CLIENT_ID"),
                            client_secret=None,
                            log_level=LOG_LEVEL)
 

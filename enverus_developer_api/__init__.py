@@ -43,9 +43,8 @@ def _chunks(iterable, n):
 
 class BaseAPI(object):
 
-    def __init__(self, url, api_key, retries, backoff_factor, **kwargs):
+    def __init__(self, url, retries, backoff_factor, **kwargs):
         self.url = url
-        self.api_key = api_key
         self.retries = retries
         self.backoff_factor = backoff_factor
 
@@ -93,7 +92,7 @@ class BaseAPI(object):
 
         ::
 
-            d2 = DirectAccessV2(client_id, client_secret, api_key)
+            d2 = DirectAccessV2(client_id, client_secret)
             query = d2.query('rigs', deleteddate='null', pagesize=1500)
             # Write tab-separated file
             d2.to_csv(query, '/path/to/rigs.csv', delimiter='\\t')
@@ -234,7 +233,7 @@ class BaseAPI(object):
 
         ::
 
-            d2 = DirectAccessV2(client_id, client_secret, api_key)
+            d2 = DirectAccessV2(client_id, client_secret)
             # Query well-origins
             well_origins_query = d2.query(
                 dataset='well-origins',
@@ -284,7 +283,7 @@ class BaseAPI(object):
 
         ::
 
-            d2 = DirectAccessV2(client_id, client_secret, api_key)
+            d2 = DirectAccessV2(client_id, client_secret)
             # Create a Texas permits dataframe, removing commas from Survey names and replacing the state
             # abbreviation with the complete name.
             df = d2.to_dataframe(
@@ -483,7 +482,6 @@ class DirectAccessV2(BaseAPI):
             self,
             client_id,
             client_secret,
-            api_key,
             retries=5,
             backoff_factor=1,
             links=None,
@@ -499,8 +497,6 @@ class DirectAccessV2(BaseAPI):
         :type client_id: str
         :param client_secret: client secret credential.
         :type client_secret: str
-        :param api_key: api key credential.
-        :type api_key: str
         :param retries: the number of attempts when retrying failed requests with status codes of 500, 502, 503 or 504
         :type retries: int
         :param backoff_factor: the factor to use when exponentially backing off prior to retrying a failed request
@@ -513,12 +509,11 @@ class DirectAccessV2(BaseAPI):
         :type: access_token: str
         :param kwargs:
         """
-        super(DirectAccessV2, self).__init__(self.url, api_key, retries, backoff_factor, **kwargs)
+        super(DirectAccessV2, self).__init__(self.url, retries, backoff_factor, **kwargs)
         self.client_id = client_id
         self.client_secret = client_secret
         self.links = links
         self.access_token = access_token
-        self.session.headers["X-API-KEY"] = self.api_key
         self.session.hooks["response"].append(self._check_response)
 
         if self.access_token:
@@ -533,9 +528,9 @@ class DirectAccessV2(BaseAPI):
 
         :return: token response as dict
         """
-        if not self.api_key or not self.client_id or not self.client_secret:
+        if not self.client_id or not self.client_secret:
             raise DAAuthException(
-                "API_KEY, CLIENT_ID and CLIENT_SECRET are required to generate an access token"
+                "CLIENT_ID and CLIENT_SECRET are required to generate an access token"
             )
 
         token_url = os.path.join(self.url, "tokens")
@@ -588,7 +583,8 @@ class DeveloperAPIv3(BaseAPI):
         :type: access_token: str
         :param kwargs:
         """
-        super(DeveloperAPIv3, self).__init__(self.url, secret_key, retries, backoff_factor, **kwargs)
+        super(DeveloperAPIv3, self).__init__(self.url, retries, backoff_factor, **kwargs)
+        self.secret_key = secret_key
         self.links = links
         self.access_token = access_token
         self.session.hooks["response"].append(self._check_response)
@@ -606,7 +602,7 @@ class DeveloperAPIv3(BaseAPI):
         :return: token response as dict
         """
 
-        if not self.api_key:
+        if not self.secret_key:
             raise DAAuthException(
                 "SECRET_KEY is required to generate an access token"
             )
@@ -615,7 +611,7 @@ class DeveloperAPIv3(BaseAPI):
 
         self.session.headers["Content-Type"] = "application/json"
 
-        response = self.session.post(token_url, json={"secretKey": self.api_key})
+        response = self.session.post(token_url, json={"secretKey": self.secret_key})
         self.logger.debug("Token response: " + json.dumps(response.json(), indent=2))
 
         self.access_token = response.json()["token"]
